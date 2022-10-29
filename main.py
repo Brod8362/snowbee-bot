@@ -22,6 +22,7 @@ async def on_message(message): # On Message happens everytime a message is sent
     if message.content.startswith('$what'):
         await message.channel.send('ur gay')
 
+
     embedT = discord.Embed(
         title='GUYS CHECK THIS OUT',
         description='this is the coolest SHIT ive ever seen',
