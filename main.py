@@ -24,13 +24,26 @@ async def on_message(message): # On Message happens everytime a message is sent
 
 
     embedT = discord.Embed(
-        title='GUYS CHECK THIS OUT',
-        description='this is the coolest SHIT ive ever seen',
-        url='https://youtu.be/S9uTScSgzrM',
-        color=discord.Color.teal(),
-
-
+        title='Vibrator',
+        url='https://a.co/d/j5qZpNj',
+        color=discord.Color.teal()
     )
+    embedT.set_thumbnail(url='https://m.media-amazon.com/images/G/01/apparel/rcxgs/tile._CB483369110_.gif')
+    embedT.add_field(name="Price:",
+                     value='$35.99',
+                     inline=False)
+    embedT.add_field(name='Seller:',
+                     value='Amazon',
+                     inline=False)
+    embedT.add_field(name='Color:',
+                     value='Purple',
+                     inline=False)
+    embedT.add_field(name='Rating:',
+                     value='4.3 / 5',
+                     inline=False)
+    embedT.add_field(name='Shipping Time',
+                     value='Overnight',
+                     inline=False)
 
     if message.content.startswith('$embed'):
         await message.channel.send(embed=embedT)
