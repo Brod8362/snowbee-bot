@@ -18,6 +18,15 @@ async def on_message(message): # On Message happens everytime a message is sent
         return
 
     if message.content.startswith('$hello'): #if the message starts w "$hello" the bot will reply "Hello!"
-        await message.channel.send('Hello!')
+        await message.channel.send('blake its me ur father, i want to tell you something (reply "$what" to find out what your father wants to tell you')
 
-client.run('your token here')
+    if message.content.startswith('$what'):  # if the message starts w "$hello" the bot will reply "Hello!"
+        await message.channel.send('ur gay')
+
+@client.command()
+async def embed(ctx):
+    embed = discord.Embed(title='Yo Mama', url='https://youtu.be/S9uTScSgzrM', description='pussy balls and ass', color='#89CFF0')
+    await ctx.send(embed.embed)
+
+with open("token", "r") as fd:
+    client.run(fd.read())
