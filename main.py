@@ -28,7 +28,7 @@ def build_embed(product: snowbee_api.Product):
 
     return embed_obj
 
-
+# Conducts search of items
 async def command_search(context: discord.Message):
     args: list[str] = context.content.split(" ")
     query: str = " ".join(args[1:])
