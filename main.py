@@ -6,20 +6,29 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-r = requests.get('http://api.snowbee.byakuren.pw/info')
-json = r.json()
-json["version"]
-
-def build_embed(tosearch):
+def build_embed(product: dict):
     embedObj = discord.Embed(
-        title=tosearch,
+        title=product["name"],
         color=discord.Color.teal()
     )
-    embedObj.add_field(name='Price:', value='One Billion Dollars', inline=False)
-    embedObj.add_field(name='Seller:', value='Blake Rodriguez', inline=False)
+    embedObj.add_field(name='Price:', value=f"${product['price']}", inline=False)
+    embedObj.add_field(name='Vendor:', value=product["vendor"], inline=False)
     embedObj.add_field(name='Rating:', value='11/10', inline=False)
 
     return embedObj
+
+def search_json(tosearch):
+    response = requests.post(
+        "http://api.snowbee.byakuren.pw/search",
+        json={
+            "query": tosearch
+        }
+    )
+
+    if response.status_code == 404:
+        return None
+    elif response.status_code == 200:
+        return response.json()["products"]
 
 @client.event
 async def on_ready():
@@ -31,13 +40,18 @@ async def on_message(message):  # Reads every message sent
     if message.author == client.user:   # Returns instantly if message is sent by the bot
         return
 
-    if message.content.startswith('$search'):
+    if message.content.startswith('$search'):   # User Searches for objects and Bot Generates Embed function with result
         tosearch = message.content[8:]
-        await message.channel.send('Searching for "' + tosearch + '"')
-        await message.channel.send(embed=build_embed(tosearch))
+        products = search_json(tosearch)
+        if products is None:
+            # nothing
+            pass
+        else:
+            product_embeds = map(build_embed, products)
 
+            await message.channel.send('Searching for "' + tosearch + '"')
+            await message.channel.send(embed=build_embed(tosearch))
 
-
-
+# Allows Discord bot to communicate with Program using Token
 with open("token", "r") as fd:
     client.run(fd.read())
