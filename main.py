@@ -58,7 +58,7 @@ async def on_ready():
 @client.event
 async def on_message(message: discord.Message):  # Reads every message sent
 
-    if message.author == client.user or message.author.bot:  # Returns instantly if message is sent by the bot
+    if message.author.bot:  # Returns instantly if message is sent by the bot
         return
 
     if message.content.startswith('$search'):  # User Searches for objects and Bot Generates Embed function with result
@@ -66,17 +66,17 @@ async def on_message(message: discord.Message):  # Reads every message sent
 
 
 @client.event
-async def on_reaction_remove(reaction: discord.Reaction, _user: discord.Member):
-    await handle_embed_page(reaction)
+async def on_reaction_remove(reaction: discord.Reaction, user: discord.Member):
+    await handle_embed_page(reaction, user)
 
 
 @client.event
-async def on_reaction_add(reaction: discord.Reaction, _user: discord.Member):
-    await handle_embed_page(reaction)
+async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
+    await handle_embed_page(reaction, user)
 
 
-async def handle_embed_page(reaction: discord.Reaction):
-    if reaction.message.id in GLOBAL_EMBED_TABLE:
+async def handle_embed_page(reaction: discord.Reaction, user: discord.Member):
+    if not user.bot and reaction.message.id in GLOBAL_EMBED_TABLE:
         embed_state: dict = GLOBAL_EMBED_TABLE[reaction.message.id]
         if reaction.emoji == EMOJI_ARROW_LEFT:
             direction = -1
@@ -87,7 +87,7 @@ async def handle_embed_page(reaction: discord.Reaction):
         if direction != 0:
             new_index = embed_state["index"] + direction
             if new_index < 0 or new_index >= len(embed_state["embeds"]):
-                return  # abort, this index is out of boudns
+                return  # abort, this index is out of bounds
 
             embed_state["index"] = new_index
             await reaction.message.edit(embed=embed_state["embeds"][new_index])
