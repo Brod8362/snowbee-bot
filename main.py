@@ -1,6 +1,7 @@
 import discord
 import snowbee_api
 
+#   Creates Client for bot to use in discord
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
@@ -8,14 +9,15 @@ client = discord.Client(intents=intents)
 VENDORS = dict(map(lambda x: (x.id, x), snowbee_api.fetch_vendors()))
 GLOBAL_EMBED_TABLE: dict = {}
 
+# Variables because the arrow emojis are illegible in pycharm lol
 EMOJI_ARROW_LEFT = "⬅️"
 EMOJI_ARROW_RIGHT = "➡️"
 
-
+#   Function to build the Embed from the information from the API
 def build_embed(product: snowbee_api.Product):
     embed_obj: discord.Embed = discord.Embed(
         title=product.name,
-        color=discord.Color.teal(),
+        color=discord.Color.from_rgb(118, 219, 233),
         url=product.product_page
     )
     embed_obj.set_thumbnail(url=product.preview_url)
@@ -49,32 +51,7 @@ async def command_search(context: discord.Message):
     except RuntimeError:
         await context.reply("Sorry, there was an error performing your request.")
 
-
-@client.event
-async def on_ready():
-    print(f'We have logged in as {client.user}')
-
-
-@client.event
-async def on_message(message: discord.Message):  # Reads every message sent
-
-    if message.author.bot:  # Returns instantly if message is sent by the bot
-        return
-
-    if message.content.startswith('$search'):  # User Searches for objects and Bot Generates Embed function with result
-        await command_search(message)
-
-
-@client.event
-async def on_reaction_remove(reaction: discord.Reaction, user: discord.Member):
-    await handle_embed_page(reaction, user)
-
-
-@client.event
-async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
-    await handle_embed_page(reaction, user)
-
-
+#   Scrolls between search results inside one Embed using the reaction arrows
 async def handle_embed_page(reaction: discord.Reaction, user: discord.Member):
     if not user.bot and reaction.message.id in GLOBAL_EMBED_TABLE:
         embed_state: dict = GLOBAL_EMBED_TABLE[reaction.message.id]
@@ -91,6 +68,30 @@ async def handle_embed_page(reaction: discord.Reaction, user: discord.Member):
 
             embed_state["index"] = new_index
             await reaction.message.edit(embed=embed_state["embeds"][new_index])
+
+@client.event
+async def on_ready(): # Sends a message in console when bot activates
+    print(f'We have logged in as {client.user}')
+
+
+@client.event
+async def on_message(message: discord.Message):  # Reads every message sent
+
+    if message.author.bot:  # Returns instantly if message is sent by the bot
+        return
+
+    if message.content.startswith('$search'):  # User Searches for objects and Bot Generates Embed function with result
+        await command_search(message)
+
+
+#   Reaction Arrow Events
+@client.event
+async def on_reaction_remove(reaction: discord.Reaction, user: discord.Member):
+    await handle_embed_page(reaction, user)
+
+@client.event
+async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
+    await handle_embed_page(reaction, user)
 
 
 # Allows Discord bot to communicate with Program using Token
