@@ -8,6 +8,9 @@ client = discord.Client(intents=intents)
 VENDORS = dict(map(lambda x: (x.id, x), snowbee_api.fetch_vendors()))
 GLOBAL_EMBED_TABLE: dict = {}
 
+EMOJI_ARROW_LEFT = "⬅️"
+EMOJI_ARROW_RIGHT = "➡️"
+
 
 def build_embed(product: snowbee_api.Product):
     embed_obj: discord.Embed = discord.Embed(
@@ -36,8 +39,10 @@ async def command_search(context: discord.Message):
             await context.reply(f"No results found for **{query}**.")
         else:
             product_embeds = list(map(build_embed, products))
-            GLOBAL_EMBED_TABLE[context.id] = (0, product_embeds)
-            await context.reply(embed=product_embeds[0])
+            bot_msg: discord.Message = await context.reply(embed=product_embeds[0])
+            GLOBAL_EMBED_TABLE[bot_msg.id] = (0, product_embeds)
+            await bot_msg.add_reaction(EMOJI_ARROW_LEFT)
+            await bot_msg.add_reaction(EMOJI_ARROW_RIGHT)
     except RuntimeError:
         await context.reply("Sorry, there was an error performing your request.")
 
