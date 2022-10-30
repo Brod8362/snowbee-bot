@@ -1,5 +1,3 @@
-from typing import List
-
 import requests
 
 API_URL = "http://api.snowbee.byakuren.pw"
@@ -31,7 +29,7 @@ def _json_to_vendor(json_obj: dict) -> Vendor:
     return Vendor(json_obj["id"], json_obj["name"], json_obj["url"], json_obj["favicon"])
 
 
-def fetch_vendors() -> "List[Vendor]":
+def fetch_vendors() -> list[Vendor]:
     response = requests.get(f"{API_URL}/vendors")
     if response.status_code == 200:
         return list(map(_json_to_vendor, response.json()["vendors"]))
@@ -41,7 +39,7 @@ def fetch_vendors() -> "List[Vendor]":
         raise RuntimeError(f"api returned {response.status_code}")
 
 
-def fetch_products(query: str) -> "List[Product]":
+def fetch_products(query: str) -> list[Product]:
     response = requests.post(
         f"{API_URL}/query", json={
             "query": query,
