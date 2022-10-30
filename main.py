@@ -1,16 +1,19 @@
-# imports discord library
 import discord
+import requests
 
 # Creates a 'Client.' Clients are the connection between the code and discord
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
+r = requests.get('http://api.snowbee.byakuren.pw/info')
+json = r.json()
+json["version"]
+
 # Registers an event
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
-
 @client.event
 async def on_message(message): # On Message happens everytime a message is sent
     if message.author == client.user: # This returns if the message is sent by the bot
@@ -20,7 +23,7 @@ async def on_message(message): # On Message happens everytime a message is sent
         await message.channel.send('blake its me ur father, i want to tell you something (reply "$what" to find out what your father wants to tell you')
 
     if message.content.startswith('$what'):
-        await message.channel.send('ur gay')
+        await message.channel.send(json["version"])
 
 
     embedT = discord.Embed(
@@ -47,6 +50,18 @@ async def on_message(message): # On Message happens everytime a message is sent
 
     if message.content.startswith('$embed'):
         await message.channel.send(embed=embedT)
+
+@client.event
+async def on_message(message):  # Reads every message sent
+
+    if message.author == client.user:   # Returns instantly if message is sent by the bot
+        return
+
+    if message.content.startswith('$search'):
+        tosearch = message.content[8:]
+        await message.channel.send('Searching for "' + tosearch + '"')
+
+
 
 
 with open("token", "r") as fd:
