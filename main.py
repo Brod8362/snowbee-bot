@@ -1,57 +1,62 @@
 import discord
-import requests
+import snowbee_api
 
-# Creates a 'Client.' Clients are the connection between the code and discord
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-def build_embed(product: dict):
-    embedObj = discord.Embed(
-        title=product["name"],
-        color=discord.Color.teal()
+VENDORS = dict(map(lambda x: (x.id, x), snowbee_api.fetch_vendors()))
+GLOBAL_EMBED_TABLE: dict = {}
+
+
+def build_embed(product: snowbee_api.Product):
+    embed_obj: discord.Embed = discord.Embed(
+        title=product.name,
+        color=discord.Color.teal(),
+        url=product.product_page
     )
-    embedObj.add_field(name='Price:', value=f"${product['price']}", inline=False)
-    embedObj.add_field(name='Vendor:', value=product["vendor"], inline=False)
-    embedObj.add_field(name='Rating:', value='11/10', inline=False)
+    embed_obj.set_thumbnail(url=product.preview_url)
+    embed_obj.add_field(name="Price", value=f"${product.price:.2f}", inline=False)
+    vendor: snowbee_api.Vendor = VENDORS.get(product.vendor_id, None)
+    if vendor is not None:
+        embed_obj.set_footer(text=vendor.name, icon_url=vendor.favicon)
 
-    return embedObj
+    return embed_obj
 
-def search_json(tosearch):
-    response = requests.post(
-        "http://api.snowbee.byakuren.pw/search",
-        json={
-            "query": tosearch
-        }
-    )
 
-    if response.status_code == 404:
-        return None
-    elif response.status_code == 200:
-        return response.json()["products"]
+async def command_search(context: discord.Message):
+    args: list[str] = context.content.split(" ")
+    query: str = " ".join(args[1:])
+    if not query:
+        await context.reply("Try inputting a query and try again.")
+        return
+    try:
+        products = snowbee_api.fetch_products(query)
+        if len(products) == 0:
+            await context.reply(f"No results found for **{query}**.")
+        else:
+            product_embeds = list(map(build_embed, products))
+            GLOBAL_EMBED_TABLE[context.id] = (0, product_embeds)
+            await context.reply(embed=product_embeds[0])
+    except RuntimeError:
+        await context.reply("Sorry, there was an error performing your request.")
+
 
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
 
+
 @client.event
 async def on_message(message):  # Reads every message sent
 
-    if message.author == client.user:   # Returns instantly if message is sent by the bot
+    if message.author == client.user or message.author.bot:  # Returns instantly if message is sent by the bot
         return
 
-    if message.content.startswith('$search'):   # User Searches for objects and Bot Generates Embed function with result
-        tosearch = message.content[8:]
-        products = search_json(tosearch)
-        if products is None:
-            # nothing
-            pass
-        else:
-            product_embeds = map(build_embed, products)
-
-            await message.channel.send('Searching for "' + tosearch + '"')
-            await message.channel.send(embed=build_embed(tosearch))
+    if message.content.startswith('$search'):  # User Searches for objects and Bot Generates Embed function with result
+        await command_search(message)
 
 # Allows Discord bot to communicate with Program using Token
-with open("token", "r") as fd:
-    client.run(fd.read())
+if __name__ == "__main__":
+    with open("token", "r") as fd:
+        client.run(fd.read())

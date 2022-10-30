@@ -41,7 +41,7 @@ def fetch_vendors() -> list[Vendor]:
 
 def fetch_products(query: str) -> list[Product]:
     response = requests.post(
-        f"{API_URL}/query", json={
+        f"{API_URL}/search", json={
             "query": query,
             "filters": []
         }
